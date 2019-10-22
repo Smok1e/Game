@@ -10,6 +10,8 @@ void Clear (HDC Level);
 
 bool CheckColor (int x, int y, int r, COLORREF color, HDC level);
 
+int CheckRemote (int *x, int *y, int dt, bool *Collision);
+
 //-----------------------------------------------------------------------------
 
 int main ()
@@ -23,9 +25,9 @@ int main ()
 
     Clear (Level);
 
-    bool w = false;
+    bool close = false;
 
-    while (!w)
+    while (!close)
 
     {
 
@@ -52,7 +54,7 @@ int main ()
 
         {
 
-            w = true;
+            close = true;
 
         }
 
@@ -99,39 +101,7 @@ int MoveBall (HDC Level)
 
         txCircle (x, y, r);
 
-        if (GetAsyncKeyState (VK_RIGHT))
-
-        {
-
-            x = x + dt;
-
-        }
-
-        if (GetAsyncKeyState (VK_LEFT))
-
-        {
-
-            x = x - dt;
-
-        }
-
-        if (GetAsyncKeyState (VK_UP))
-
-        {
-
-            y = y - dt;
-
-        }
-
-        if (GetAsyncKeyState (VK_DOWN))
-
-        {
-
-            y = y + dt;
-
-        }
-
-        if (GetAsyncKeyState (VK_ESCAPE))
+        if (CheckRemote (&x, &y, dt, &Collision) == 0)
 
         {
 
@@ -139,29 +109,6 @@ int MoveBall (HDC Level)
 
         }
 
-        if (GetAsyncKeyState (VK_TAB))
-
-        {
-
-            if (Collision)
-
-            {
-
-                Collision = false;
-
-            }
-
-            else
-
-            {
-
-                Collision = true;
-
-            }
-
-            txSleep(500);
-
-        }
 
         if (CheckColor (x, y, r, TX_WHITE, Level) && Collision)
 
@@ -181,10 +128,7 @@ int MoveBall (HDC Level)
 
         txSleep (1);
 
-
     }
-
-    return false;
 
 }
 
@@ -201,14 +145,12 @@ void Clear (HDC Level)
 
 }
 
-bool CheckColor (int x, int y, int r, COLORREF color, HDC level)
+bool CheckColor2 (int x, int y, int r, COLORREF color, HDC level)
 {
     for (double angle = 0; angle < 2 * M_PI; angle+= M_PI / 4)
     {
         int circularX = x + (r) * cos (angle);
         int circularY = y + (r) * sin (angle);
-
-        txClearConsole();
 
         if (txGetPixel (circularX, circularY) == color)
         {
@@ -221,3 +163,93 @@ bool CheckColor (int x, int y, int r, COLORREF color, HDC level)
 
     return false;
 }
+
+bool CheckColor (int x, int y, int r, COLORREF color, HDC level)
+
+{
+
+    if (txGetPixel (x + r,        y           ) == color) return true;
+    if (txGetPixel (x + r * 0.71, y - r * 0.71) == color) return true;
+    if (txGetPixel (x,            y + r       ) == color) return true;
+    if (txGetPixel (x - r * 0.71, y - r * 0.71) == color) return true;
+    if (txGetPixel (x - r,        y           ) == color) return true;
+    if (txGetPixel (x - r * 0.71, y + r * 0.71) == color) return true;
+    if (txGetPixel (x,            y + r       ) == color) return true;
+    if (txGetPixel (x + r * 0.71, y + r * 0.71) == color) return true;
+
+    return false;
+
+}
+
+int CheckRemote (int* x, int* y, int dt, bool* Collision)
+
+{
+
+    if (GetAsyncKeyState (VK_RIGHT))
+
+    {
+
+        *x = *x + dt;
+
+    }
+
+    if (GetAsyncKeyState (VK_LEFT))
+
+    {
+
+        *x = *x - dt;
+
+    }
+
+    if (GetAsyncKeyState (VK_UP))
+
+    {
+
+        *y = *y - dt;
+
+    }
+
+    if (GetAsyncKeyState (VK_DOWN))
+
+    {
+
+        *y = *y + dt;
+
+    }
+
+    if (GetAsyncKeyState (VK_ESCAPE))
+
+    {
+
+        return 0;
+
+    }
+
+    if (GetAsyncKeyState (VK_TAB))
+
+    {
+
+        if (Collision)
+
+        {
+
+            *Collision = false;
+
+        }
+
+        else
+
+        {
+
+            *Collision = true;
+
+        }
+
+        txSleep(500);
+
+    }
+
+    return 1;
+
+}
+
